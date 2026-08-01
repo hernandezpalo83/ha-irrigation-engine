@@ -1,8 +1,8 @@
 """Irrigation Engine domain state machine and cycle controller."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Any
+from typing import Dict, Any
 from datetime import datetime
 
 

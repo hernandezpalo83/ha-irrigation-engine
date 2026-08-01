@@ -4,8 +4,6 @@ Compiles the current registry, generates the Home Assistant package YAML,
 and creates a clean zip file in release/ ready for deployment into Home Assistant config.
 """
 
-import os
-import shutil
 import zipfile
 from pathlib import Path
 

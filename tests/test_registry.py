@@ -12,8 +12,8 @@ try:
 except ImportError:
     HAS_YAML = False
 
-from src.registry.validator import RegistryValidator, safe_load_yaml
-from src.registry.models import RegistryValidationError, DeviceConfig, ZoneConfig, EngineSettings
+from src.registry.validator import RegistryValidator
+from src.registry.models import RegistryValidationError
 
 
 class TestRegistryValidator(unittest.TestCase):

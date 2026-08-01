@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List, Set, Optional
 
+from .models import DeviceConfig, ZoneConfig, EngineSettings, RegistryData, RegistryValidationError
+
 try:
     import yaml
     HAS_YAML = True
@@ -73,7 +75,6 @@ def safe_load_yaml(content: str) -> Dict[str, Any]:
             else:
                 if val == "":
                     current_key = key
-                    # Look ahead to see if it's list or dict (or check key name)
                     if key in ("devices", "zones"):
                         data[key] = []
                     else:
@@ -83,9 +84,6 @@ def safe_load_yaml(content: str) -> Dict[str, Any]:
                     current_key = key
 
     return data
-
-
-from .models import DeviceConfig, ZoneConfig, EngineSettings, RegistryData, RegistryValidationError
 
 
 class RegistryValidator:

@@ -1,7 +1,7 @@
 """Domain data models for HA Irrigation Engine Registry."""
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from typing import List
 
 
 class RegistryValidationError(Exception):
