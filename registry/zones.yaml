@@ -1,2 +1,5 @@
 version: 1
-zones: {}
+zones:
+  - id: jardin
+    name: Jardín
+    devices: [huerto, cesped]

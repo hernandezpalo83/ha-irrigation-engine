@@ -1,2 +1,4 @@
-watchdog:
-  timeout: 30
+version: 1
+engine:
+  watchdog_timeout: 30
+  max_irrigation_minutes: 180

@@ -1,2 +1,10 @@
 version: 1
-devices: {}
+devices:
+  - id: huerto
+    name: Huerto
+    adapter: sonoff_swv
+    switch: switch.riego_huerto
+  - id: cesped
+    name: Césped
+    adapter: sonoff_swv
+    switch: switch.riego_cesped
