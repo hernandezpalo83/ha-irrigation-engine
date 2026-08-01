@@ -1,1 +1,22 @@
-# Watchdog automation placeholder
+# Home Assistant Watchdog Automation — HA Irrigation Engine
+# Automatically turns off irrigation valves if continuous runtime exceeds the configured safety threshold.
+
+alias: "HA Irrigation Engine — Safety Watchdog"
+description: "Monitors active irrigation switches and triggers automatic emergency shutoff if maximum duration is exceeded."
+mode: restart
+trigger:
+  - platform: state
+    entity_id:
+      - switch.riego_huerto
+      - switch.riego_cesped
+    to: "on"
+    for:
+      minutes: "{{ states('input_number.riego_watchdog_timeout') | int(30) }}"
+action:
+  - service: switch.turn_off
+    target:
+      entity_id: "{{ trigger.entity_id }}"
+  - service: persistent_notification.create
+    data:
+      title: "⚠️ Watchdog Triggered — Safety Shutoff"
+      message: "Irrigation valve {{ trigger.entity_id }} was automatically forced OFF by the Safety Watchdog after exceeding {{ states('input_number.riego_watchdog_timeout') }} minutes."

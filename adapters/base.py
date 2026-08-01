@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
-class ValveAdapter(ABC):
-    @abstractmethod
-    def resolve_entities(self,switch:str)->dict: ...
+"""Top-level alias for src.adapters.base."""
+
+from src.adapters.base import ValveAdapter, ResolvedEntities
+
+__all__ = ["ValveAdapter", "ResolvedEntities"]
