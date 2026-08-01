@@ -1,8 +1,6 @@
 """Registry validator and loader module."""
 
-import os
 import json
-import re
 from pathlib import Path
 from typing import Dict, Any, List, Set, Optional
 
@@ -14,79 +12,75 @@ except ImportError:
 
 
 def safe_load_yaml(content: str) -> Dict[str, Any]:
-    """Parse YAML string using PyYAML if present, or fallback simple parser."""
+    """Parse YAML string using PyYAML if present, or fallback safe parser."""
     if HAS_YAML:
         result = yaml.safe_load(content)
         return result if isinstance(result, dict) else {}
 
-    # Simple fallback parser for JSON/simple YAML structures
     content = content.strip()
     if not content:
         return {}
     if content.startswith("{"):
         return json.loads(content)
 
-    # Basic YAML key-value block parser fallback
     data: Dict[str, Any] = {}
     current_key: Optional[str] = None
-    current_list: Optional[List[Any]] = None
-    current_dict: Optional[Dict[str, Any]] = None
+    current_container: Optional[Any] = None
 
     for line in content.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
+        raw_stripped = line.strip()
+        if not raw_stripped or raw_stripped.startswith("#"):
             continue
 
-        if ":" in line and not line.strip().startswith("-"):
-            key, val = line.split(":", 1)
-            key = key.strip()
-            val = val.strip()
+        indent = len(line) - len(line.lstrip(" "))
 
-            if val == "":
-                current_key = key
-                if key not in data:
-                    data[key] = []
-            else:
-                # Type conversion
-                if val.isdigit():
-                    val = int(val)
-                elif val.lower() == "true":
-                    val = True
-                elif val.lower() == "false":
-                    val = False
-                elif val.startswith("[") and val.endswith("]"):
-                    val = [x.strip().strip("'\"") for x in val[1:-1].split(",") if x.strip()]
-                else:
-                    val = val.strip("'\"")
-                data[key] = val
-                current_key = key
-
-        elif stripped.startswith("-"):
-            item_str = stripped[1:].strip()
+        if raw_stripped.startswith("-"):
+            item_content = raw_stripped[1:].strip()
             if current_key and isinstance(data.get(current_key), list):
-                if item_str.startswith("{") and item_str.endswith("}"):
-                    # Inline dict: {id: "huerto", name: "Huerto", ...}
-                    dict_items = {}
-                    for pair in item_str[1:-1].split(","):
-                        if ":" in pair:
-                            k, v = pair.split(":", 1)
-                            dict_items[k.strip().strip("'\"")] = v.strip().strip("'\"")
-                    data[current_key].append(dict_items)
-                elif ":" in item_str:
-                    k, v = item_str.split(":", 1)
+                if ":" in item_content:
+                    k, v = item_content.split(":", 1)
                     k = k.strip().strip("'\"")
                     v = v.strip().strip("'\"")
-                    current_dict = {k: v}
-                    data[current_key].append(current_dict)
+                    item_dict = {k: v}
+                    data[current_key].append(item_dict)
+                    current_container = item_dict
                 else:
-                    data[current_key].append(item_str.strip("'\""))
-            elif current_dict is not None and stripped.startswith("-"):
-                pass
-        elif current_dict is not None and ":" in stripped:
-            k, v = stripped.split(":", 1)
-            k = k.strip().strip("'\"")
-            v = v.strip().strip("'\"")
-            current_dict[k] = v
+                    item_val = item_content.strip("'\"")
+                    if item_val.startswith("[") and item_val.endswith("]"):
+                        item_val = [x.strip().strip("'\"") for x in item_val[1:-1].split(",") if x.strip()]
+                    data[current_key].append(item_val)
+
+        elif ":" in raw_stripped:
+            key, val = raw_stripped.split(":", 1)
+            key = key.strip().strip("'\"")
+            val = val.strip()
+
+            if val.isdigit():
+                parsed_val: Any = int(val)
+            elif val.lower() == "true":
+                parsed_val = True
+            elif val.lower() == "false":
+                parsed_val = False
+            elif val.startswith("[") and val.endswith("]"):
+                parsed_val = [x.strip().strip("'\"") for x in val[1:-1].split(",") if x.strip()]
+            else:
+                parsed_val = val.strip("'\"")
+
+            if indent > 0 and current_key and isinstance(data.get(current_key), dict):
+                data[current_key][key] = parsed_val
+            elif indent > 0 and isinstance(current_container, dict):
+                current_container[key] = parsed_val
+            else:
+                if val == "":
+                    current_key = key
+                    # Look ahead to see if it's list or dict (or check key name)
+                    if key in ("devices", "zones"):
+                        data[key] = []
+                    else:
+                        data[key] = {}
+                else:
+                    data[key] = parsed_val
+                    current_key = key
 
     return data
 
